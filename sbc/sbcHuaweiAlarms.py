@@ -18,16 +18,22 @@ GMAIL_PASSWORD = "eqxewqxcxyhodpid"
 
 SENDER_EMAIL = "u2020@telin.net"
 
-TELEGRAM_TOKEN = "959873013:AAHJW229l9oE3FmKFBC06OUdLCgias9-ofc"
+TELEGRAM_TOKEN = "1246959217:AAGXaQacKWpOy-9FnxtcWb0sbRQrgm3LWnw"
 
+"""old chatIDs
 CHAT_ID_DIALOG = "-4195541246"
 CHAT_ID_TRUNK = "-586549031"
 CHAT_ID_CAC = "-437435143"
 CHAT_ID_SYSTEM = "-352485171"
+"""
+
+CHAT_ID_DIALOG = "-4195541246"
+CHAT_ID_OM = "-5073340200"
+CHAT_ID_TRUNK_CAC = "-586549031"
+CHAT_ID_SYSTEM = "-5029590520"
 
 # Toggle debug logging (set False to reduce output)
 DEBUG = True
-
 
 # =====================
 # GMAIL FUNCTIONS
@@ -174,11 +180,17 @@ def route_email(content: str):
     elif "ADJ_ODINE" in content:
         send_email_via_telegram(content, "ODINE TRUNK GROUP", CHAT_ID_SYSTEM)
 
+    elif "SG1" in content:
+        send_email_via_telegram(content, "SG1 BACKUP DC ALARMS", CHAT_ID_OM)
+
+    elif "HK1" in content:
+        send_email_via_telegram(content, "HK1 BACKUP DC ALARMS", CHAT_ID_OM)
+
     elif "Alarm Name:  Trunk Group Fault" in content:
-        send_email_via_telegram(content, "TRUNK GROUP", CHAT_ID_TRUNK)
+        send_email_via_telegram(content, "TRUNK GROUP", CHAT_ID_TRUNK_CAC)
 
     elif "Connection Admission Control" in content:
-        send_email_via_telegram(content, "CAC LIMIT", CHAT_ID_CAC)
+        send_email_via_telegram(content, "CAC LIMIT", CHAT_ID_TRUNK_CAC)
 
     else:
         if DEBUG:
