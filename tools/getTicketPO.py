@@ -3,9 +3,11 @@ import sys
 import imaplib
 import email
 import email.header
+import email.header
 import datetime
 import requests
 import re
+
 
 # Configuration
 EMAIL_SERVER = 'imap.gmail.com'
@@ -23,7 +25,7 @@ def send_telegram(message: str, chat_id: str, token: str) -> None:
     payload = {
         'chat_id': chat_id,
         'text': message,
-        'parse_mode': 'HTML'
+        'parse_mode': 'Markdown'
     }
     try:
         resp = requests.post(url, data=payload, timeout=10)
@@ -31,39 +33,7 @@ def send_telegram(message: str, chat_id: str, token: str) -> None:
     except requests.RequestException as exc:
         print(f"Failed to send Telegram message: {exc}")
 
-def get_decoded_email_body(message_bytes: bytes) -> str:
-    """Decode email bytes to a unicode string, prefer text/plain."""
-    msg = email.message_from_bytes(message_bytes)
-    text = ""
-    
-    if msg.is_multipart():
-        for part in msg.walk():
-            ctype = part.get_content_type()
-            cdisposition = str(part.get('Content-Disposition'))
 
-            if ctype == 'text/plain' and 'attachment' not in cdisposition:
-                try:
-                    text = part.get_payload(decode=True).decode(part.get_content_charset() or 'utf-8', 'ignore')
-                    break 
-                except Exception:
-                    continue
-        # Fallback to html if no plain text found
-        if not text:
-             for part in msg.walk():
-                ctype = part.get_content_type()
-                if ctype == 'text/html':
-                    try:
-                        text = part.get_payload(decode=True).decode(part.get_content_charset() or 'utf-8', 'ignore')
-                        break
-                    except Exception:
-                         continue
-    else:
-        try:
-            text = msg.get_payload(decode=True).decode(msg.get_content_charset() or 'utf-8', 'ignore')
-        except Exception:
-            text = ""
-            
-    return text.strip()
 
 def clean_subject(subject_raw: str) -> str:
     """Clean and format subject string."""
@@ -96,18 +66,13 @@ def process_mailbox(M: imaplib.IMAP4_SSL) -> None:
         
         raw_subject = msg.get('Subject', '')
         subject = clean_subject(raw_subject)
+        title = '\U0001F525 *Ticket Dispatched to PO* \u274C'
 
-        # Determine urgency/icon based on subject content
-        if 'NORMAL' in subject.upper():
-            title = '\U0001F3E4 <b>Ticket Dispatched to PO</b>'
-        else:
-            title = '\U0001F525 <b>Ticket Dispatched to PO</b> \u274C'
+        # Escape Markdown special characters in subject to prevent broken parsing
+        # Legacy Markdown escapes: *, _, `, [
+        safe_subject = re.sub(r'([*_`\[])', r'\\\1', subject)
 
-        body = get_decoded_email_body(raw_email)
-        
-        # Format the final message
-        # Use HTML formatting for the subject to make it clear
-        message = f"{title}\n=========\n<b>{subject}</b>\n\n{body}"
+        message = f"{title}\n=========\n*{safe_subject}*"
         
         send_telegram(message, CHAT_ID, TELEGRAM_TOKEN)
         print("Alert sent to Telegram.")
