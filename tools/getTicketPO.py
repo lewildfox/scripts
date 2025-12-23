@@ -72,7 +72,7 @@ def clean_subject(subject_raw: str) -> str:
     subject = str(hdr)
     
     # Remove Fwd:, Re: etc. at the start (case insensitive)
-    subject = re.sub(r'^\s*(?:Fwd|Re|Aw):\s*', '', subject, flags=re.IGNORECASE)
+    subject = re.sub(r'^\s*(?:Fwd|Re|Aw|FW):\s*', '', subject, flags=re.IGNORECASE)
     
     # Remove multiple spaces/newlines
     subject = ' '.join(subject.split())
